@@ -14,6 +14,7 @@ data/
 # Secrets / env
 .env
 .env.*
+firebase_web_config.json
 *.pem
 *.key
 *firebase-adminsdk*.json
@@ -24,4 +25,3 @@ service-account*.json
 .idea/
 Thumbs.db
 Desktop.ini
-

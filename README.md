@@ -7,6 +7,15 @@ JoYuLy Study Hub is a FastAPI web app that helps students:
 - authenticate with Firebase
 - store app data in Firebase Firestore + Firebase Storage
 
+## Setup Checklist
+1. Install Python 3.10+
+1. Create Firebase project + enable Auth/Firestore/Storage
+1. Download Firebase Admin service-account JSON
+1. Get Firebase Web `apiKey`
+1. Get OpenAI API key
+1. Set 3 environment variables
+1. Run `py main.py`
+
 ## Tech Stack
 - Python 3.10+
 - FastAPI
@@ -41,16 +50,23 @@ JoYuLy Study Hub is a FastAPI web app that helps students:
 1. OpenAI API key
 
 ## Required Environment Variables
-Only these 2 variables are required:
+Only these 3 variables are required:
 
 ```env
 FIREBASE_SERVICE_ACCOUNT_JSON=C:\absolute\path\to\your-firebase-adminsdk.json
+FIREBASE_WEB_API_KEY=your_firebase_web_api_key
 OPENAI_API_KEY=your_openai_api_key
 ```
 
-Why only 2?
+What each variable is for:
+- `FIREBASE_SERVICE_ACCOUNT_JSON`: backend Firebase Admin authentication
+- `FIREBASE_WEB_API_KEY`: frontend Firebase Auth initialization
+- `OPENAI_API_KEY`: AI extraction, grading, and question generation
+
+Why this setup?
 - Firebase backend settings are auto-derived from your service-account JSON.
-- Firebase web config is prefilled in code for this project.
+- Firebase `projectId`, `authDomain`, and `storageBucket` are auto-derived from service-account JSON.
+- Firebase web API key is **not hardcoded**.
 
 ## Setup (Step-by-Step)
 1. Open terminal in project root.
@@ -69,6 +85,7 @@ Why only 2?
 1. Set environment variables (PowerShell):
    ```powershell
    $env:FIREBASE_SERVICE_ACCOUNT_JSON="C:\absolute\path\to\your-firebase-adminsdk.json"
+   $env:FIREBASE_WEB_API_KEY="your_firebase_web_api_key"
    $env:OPENAI_API_KEY="your_openai_api_key"
    ```
 1. Run app:
@@ -78,6 +95,12 @@ Why only 2?
 1. Open:
    - `http://127.0.0.1:8000`
 
+## Common First-Run Mistakes
+- Wrong JSON path in `FIREBASE_SERVICE_ACCOUNT_JSON`
+- Forgetting to enable Email/Password in Firebase Auth
+- Missing `FIREBASE_WEB_API_KEY`
+- Not activating virtual environment before running install/app
+
 ## Firebase Setup (First Time Only)
 1. Go to Firebase Console and create/select your project.
 1. In `Build > Authentication`, enable `Email/Password`.
@@ -85,6 +108,7 @@ Why only 2?
 1. In `Build > Storage`, create bucket.
 1. In `Project settings > Service accounts`, generate a new private key JSON.
 1. Save that JSON locally and set `FIREBASE_SERVICE_ACCOUNT_JSON` to that file path.
+1. In `Project settings > General > Your apps > Web app`, copy `apiKey` into `FIREBASE_WEB_API_KEY`.
 
 ## How to Use
 1. Login/Register from auth page.

@@ -1,0 +1,8 @@
+{
+  "apiKey": "your_web_api_key",
+  "authDomain": "your_project.firebaseapp.com",
+  "projectId": "your_project_id",
+  "storageBucket": "your_project_bucket",
+  "messagingSenderId": "your_messaging_sender_id",
+  "appId": "your_web_app_id"
+}

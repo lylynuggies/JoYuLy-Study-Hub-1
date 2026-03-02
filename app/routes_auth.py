@@ -15,14 +15,6 @@ from .ui import render
 
 router = APIRouter()
 _FIREBASE_CERT_INITIALIZED = False
-FIREBASE_WEB_DEFAULT = {
-    "apiKey": "AIzaSyCWyaVzFR416bAbG-5OjZLbjaLaRM4aOUU",
-    "authDomain": "login-auth-47b5b.firebaseapp.com",
-    "projectId": "login-auth-47b5b",
-    "storageBucket": "login-auth-47b5b.firebasestorage.app",
-    "messagingSenderId": "724831018234",
-    "appId": "1:724831018234:web:565bc288b20b23cadbfd43",
-}
 
 
 def _title_words(s: str) -> str:
@@ -88,13 +80,13 @@ def auth(request: Request):
     mode = request.query_params.get("mode", "login").strip().lower()
     if mode not in {"login", "register"}:
         mode = "login"
+    svc, _ = _discover_service_account_path()
+    project_id = os.getenv("FIREBASE_PROJECT_ID", "").strip() or ( _service_account_project_id(svc) if svc else "" )
     firebase_config = {
-        "apiKey": os.getenv("FIREBASE_WEB_API_KEY", "").strip() or FIREBASE_WEB_DEFAULT["apiKey"],
-        "authDomain": os.getenv("FIREBASE_WEB_AUTH_DOMAIN", "").strip() or FIREBASE_WEB_DEFAULT["authDomain"],
-        "projectId": os.getenv("FIREBASE_WEB_PROJECT_ID", "").strip() or FIREBASE_WEB_DEFAULT["projectId"],
-        "storageBucket": os.getenv("FIREBASE_WEB_STORAGE_BUCKET", "").strip() or FIREBASE_WEB_DEFAULT["storageBucket"],
-        "messagingSenderId": os.getenv("FIREBASE_WEB_MESSAGING_SENDER_ID", "").strip() or FIREBASE_WEB_DEFAULT["messagingSenderId"],
-        "appId": os.getenv("FIREBASE_WEB_APP_ID", "").strip() or FIREBASE_WEB_DEFAULT["appId"],
+        "apiKey": os.getenv("FIREBASE_WEB_API_KEY", "").strip(),
+        "authDomain": f"{project_id}.firebaseapp.com" if project_id else "",
+        "projectId": project_id,
+        "storageBucket": f"{project_id}.firebasestorage.app" if project_id else "",
     }
     return render(request, "auth.html", "Auth", error=None, firebase_config=firebase_config, mode=mode)
 

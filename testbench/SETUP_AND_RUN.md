@@ -23,11 +23,12 @@ pip install -r requirements.txt
 Required:
 ```powershell
 $env:FIREBASE_SERVICE_ACCOUNT_JSON="C:\absolute\path\to\your-firebase-adminsdk.json"
+$env:FIREBASE_WEB_API_KEY="your_firebase_web_api_key"
 $env:OPENAI_API_KEY="sk-..."
 ```
 
 Notes:
-- Only 2 variables are required for standard setup.
+- Only 3 variables are required for standard setup.
 - Firebase project id and bucket are auto-derived from service account JSON.
 
 ## 5) Run App
@@ -57,13 +58,6 @@ Open:
 
 ## 8) How to Get Firebase Keys
 1. Firebase Console -> Project settings -> General -> Your apps -> Web app config.
-1. Copy values into:
-   - `FIREBASE_WEB_API_KEY`
-   - `FIREBASE_WEB_AUTH_DOMAIN`
-   - `FIREBASE_WEB_PROJECT_ID`
-   - `FIREBASE_WEB_STORAGE_BUCKET`
-   - `FIREBASE_WEB_MESSAGING_SENDER_ID`
-   - `FIREBASE_WEB_APP_ID`
-   (Only if you want to override default web config in code.)
+1. Copy `apiKey` into `FIREBASE_WEB_API_KEY`.
 1. Firebase Console -> Project settings -> Service accounts -> Generate new private key.
 1. Save JSON locally and set `FIREBASE_SERVICE_ACCOUNT_JSON` to that file path.

@@ -33,15 +33,15 @@
   import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
 
   const firebaseConfig = JSON.parse(document.getElementById("firebase-config").textContent || "{}");
-  const requiredFirebaseFields = ["apiKey", "authDomain", "projectId", "storageBucket", "messagingSenderId", "appId"];
+  const msg = document.getElementById("fb-msg");
+  const requiredFirebaseFields = ["apiKey", "authDomain", "projectId"];
   const missingFirebaseFields = requiredFirebaseFields.filter((k) => !String(firebaseConfig[k] || "").trim());
   if (missingFirebaseFields.length) {
-    msg.textContent = `Firebase web config missing: ${missingFirebaseFields.join(", ")}. Set env vars and restart server.`;
-    throw new Error("Missing Firebase web config");
+    msg.textContent = `Firebase config missing: ${missingFirebaseFields.join(", ")}. Set FIREBASE_WEB_API_KEY and FIREBASE_SERVICE_ACCOUNT_JSON, then restart server.`;
+    throw new Error("Missing Firebase config");
   }
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
-  const msg = document.getElementById("fb-msg");
   const PASSWORD_MIN_LEN = 8;
 
   const toFriendlyError = (raw) => {
