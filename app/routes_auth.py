@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import secrets
 import re
+import json
 from pathlib import Path
 
 from fastapi import APIRouter, Form, Request
@@ -13,8 +14,15 @@ from .security import me, now
 from .ui import render
 
 router = APIRouter()
-FIREBASE_PROJECT_ID = os.getenv("FIREBASE_PROJECT_ID", "").strip()
 _FIREBASE_CERT_INITIALIZED = False
+FIREBASE_WEB_DEFAULT = {
+    "apiKey": "AIzaSyCWyaVzFR416bAbG-5OjZLbjaLaRM4aOUU",
+    "authDomain": "login-auth-47b5b.firebaseapp.com",
+    "projectId": "login-auth-47b5b",
+    "storageBucket": "login-auth-47b5b.firebasestorage.app",
+    "messagingSenderId": "724831018234",
+    "appId": "1:724831018234:web:565bc288b20b23cadbfd43",
+}
 
 
 def _title_words(s: str) -> str:
@@ -65,6 +73,14 @@ def _discover_service_account_path() -> tuple[str, list[str]]:
     return "", checked
 
 
+def _service_account_project_id(path: str) -> str:
+    try:
+        payload = json.loads(Path(path).read_text(encoding="utf-8"))
+        return str((payload or {}).get("project_id", "")).strip()
+    except Exception:
+        return ""
+
+
 @router.get("/auth")
 def auth(request: Request):
     if me(request):
@@ -73,12 +89,12 @@ def auth(request: Request):
     if mode not in {"login", "register"}:
         mode = "login"
     firebase_config = {
-        "apiKey": os.getenv("FIREBASE_WEB_API_KEY", "").strip(),
-        "authDomain": os.getenv("FIREBASE_WEB_AUTH_DOMAIN", "").strip(),
-        "projectId": os.getenv("FIREBASE_WEB_PROJECT_ID", "").strip(),
-        "storageBucket": os.getenv("FIREBASE_WEB_STORAGE_BUCKET", "").strip(),
-        "messagingSenderId": os.getenv("FIREBASE_WEB_MESSAGING_SENDER_ID", "").strip(),
-        "appId": os.getenv("FIREBASE_WEB_APP_ID", "").strip(),
+        "apiKey": os.getenv("FIREBASE_WEB_API_KEY", "").strip() or FIREBASE_WEB_DEFAULT["apiKey"],
+        "authDomain": os.getenv("FIREBASE_WEB_AUTH_DOMAIN", "").strip() or FIREBASE_WEB_DEFAULT["authDomain"],
+        "projectId": os.getenv("FIREBASE_WEB_PROJECT_ID", "").strip() or FIREBASE_WEB_DEFAULT["projectId"],
+        "storageBucket": os.getenv("FIREBASE_WEB_STORAGE_BUCKET", "").strip() or FIREBASE_WEB_DEFAULT["storageBucket"],
+        "messagingSenderId": os.getenv("FIREBASE_WEB_MESSAGING_SENDER_ID", "").strip() or FIREBASE_WEB_DEFAULT["messagingSenderId"],
+        "appId": os.getenv("FIREBASE_WEB_APP_ID", "").strip() or FIREBASE_WEB_DEFAULT["appId"],
     }
     return render(request, "auth.html", "Auth", error=None, firebase_config=firebase_config, mode=mode)
 
@@ -129,9 +145,10 @@ async def firebase_login(request: Request):
                 401,
             )
 
-        opts = {"projectId": FIREBASE_PROJECT_ID}
-        if not FIREBASE_PROJECT_ID:
-            return JSONResponse({"error": "Firebase login failed: FIREBASE_PROJECT_ID is not set."}, 401)
+        project_id = os.getenv("FIREBASE_PROJECT_ID", "").strip() or _service_account_project_id(svc)
+        if not project_id:
+            return JSONResponse({"error": "Firebase login failed: project_id missing in service account JSON."}, 401)
+        opts = {"projectId": project_id}
         global _FIREBASE_CERT_INITIALIZED
         if firebase_admin._apps and not _FIREBASE_CERT_INITIALIZED:
             # Recreate default app so it uses certificate creds instead of ADC.
@@ -144,7 +161,7 @@ async def firebase_login(request: Request):
         if not uid:
             return JSONResponse({"error": "Token missing uid"}, 401)
     except Exception as e:
-        setup_hint = "Set FIREBASE_SERVICE_ACCOUNT_JSON and FIREBASE_PROJECT_ID correctly for your Firebase project."
+        setup_hint = "Set FIREBASE_SERVICE_ACCOUNT_JSON correctly. Optionally set FIREBASE_PROJECT_ID override."
         return JSONResponse({"error": f"Firebase login failed: {e}", "hint": setup_hint}, 401)
 
     fn = first_name_in or str((name.split(" ")[0] if name else "")).strip()

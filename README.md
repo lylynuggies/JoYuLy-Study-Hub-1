@@ -48,19 +48,13 @@ Set these before running:
 
 ```env
 FIREBASE_SERVICE_ACCOUNT_JSON=C:\absolute\path\to\your-firebase-adminsdk.json
-FIREBASE_PROJECT_ID=your_project_id
-FIREBASE_STORAGE_BUCKET=your_project_bucket
-FIREBASE_WEB_API_KEY=your_web_api_key
-FIREBASE_WEB_AUTH_DOMAIN=your_project.firebaseapp.com
-FIREBASE_WEB_PROJECT_ID=your_project_id
-FIREBASE_WEB_STORAGE_BUCKET=your_project_bucket
-FIREBASE_WEB_MESSAGING_SENDER_ID=your_messaging_sender_id
-FIREBASE_WEB_APP_ID=your_web_app_id
 OPENAI_API_KEY=your_openai_api_key
 ```
 
 Notes:
-- Set all Firebase values to your own Firebase project.
+- Only these 2 variables are required for normal setup.
+- Firebase project id and bucket are auto-derived from your service account JSON.
+- Firebase Web app config is prefilled in code for this project.
 - Do not commit service account JSON to GitHub.
 
 ## Setup (Local)
@@ -80,14 +74,6 @@ Notes:
 1. Set environment variables (PowerShell example):
    ```powershell
    $env:FIREBASE_SERVICE_ACCOUNT_JSON="C:\absolute\path\to\your-firebase-adminsdk.json"
-   $env:FIREBASE_PROJECT_ID="your_project_id"
-   $env:FIREBASE_STORAGE_BUCKET="your_project_bucket"
-   $env:FIREBASE_WEB_API_KEY="your_web_api_key"
-   $env:FIREBASE_WEB_AUTH_DOMAIN="your_project.firebaseapp.com"
-   $env:FIREBASE_WEB_PROJECT_ID="your_project_id"
-   $env:FIREBASE_WEB_STORAGE_BUCKET="your_project_bucket"
-   $env:FIREBASE_WEB_MESSAGING_SENDER_ID="your_messaging_sender_id"
-   $env:FIREBASE_WEB_APP_ID="your_web_app_id"
    $env:OPENAI_API_KEY="<REQUIRED_OPENAI_API_KEY>"
    ```
 1. Run app:
@@ -145,5 +131,6 @@ See:
    - `storageBucket`
    - `messagingSenderId`
    - `appId`
+   (Only needed if you want to override default web config in code.)
 1. In `Project settings > Service accounts`, generate a new private key JSON and store it locally.
 1. Set the environment variables above and restart server.

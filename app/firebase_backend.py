@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 from pathlib import Path
 from typing import Any
@@ -7,6 +8,8 @@ from typing import Any
 _APP_READY = False
 _DB = None
 _BUCKET = None
+_SERVICE_ACCOUNT_PATH = ""
+_SERVICE_ACCOUNT_INFO: dict[str, Any] | None = None
 
 
 def _candidate_service_account_paths() -> list[Path]:
@@ -40,6 +43,18 @@ def _discover_service_account_path() -> str:
     return ""
 
 
+def _load_service_account_info(path: str) -> dict[str, Any]:
+    global _SERVICE_ACCOUNT_INFO, _SERVICE_ACCOUNT_PATH
+    if _SERVICE_ACCOUNT_INFO is not None and _SERVICE_ACCOUNT_PATH == path:
+        return _SERVICE_ACCOUNT_INFO
+    payload = json.loads(Path(path).read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise RuntimeError("Invalid Firebase service account JSON.")
+    _SERVICE_ACCOUNT_INFO = payload
+    _SERVICE_ACCOUNT_PATH = path
+    return payload
+
+
 def ensure_firebase() -> None:
     global _APP_READY, _DB, _BUCKET
     if _APP_READY:
@@ -50,12 +65,15 @@ def ensure_firebase() -> None:
     svc = _discover_service_account_path()
     if not svc:
         raise RuntimeError("Firebase Admin service account JSON not found.")
-    project_id = os.getenv("FIREBASE_PROJECT_ID", "").strip()
+    svc_info = _load_service_account_info(svc)
+    project_id = os.getenv("FIREBASE_PROJECT_ID", "").strip() or str(svc_info.get("project_id", "")).strip()
     bucket_name = os.getenv("FIREBASE_STORAGE_BUCKET", "").strip()
+    if not bucket_name and project_id:
+        bucket_name = f"{project_id}.firebasestorage.app"
     if not project_id:
-        raise RuntimeError("FIREBASE_PROJECT_ID is not set.")
+        raise RuntimeError("Firebase project_id missing in env and service account JSON.")
     if not bucket_name:
-        raise RuntimeError("FIREBASE_STORAGE_BUCKET is not set.")
+        raise RuntimeError("Firebase storage bucket missing in env and could not be inferred.")
     if firebase_admin._apps:
         app = firebase_admin.get_app()
     else:
