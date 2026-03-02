@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360" role="img" aria-label="Mascot placeholder">
+  <rect width="360" height="360" rx="24" fill="#b7c4d8"/>
+  <circle cx="180" cy="128" r="58" fill="#eef4fb"/>
+  <circle cx="160" cy="120" r="7" fill="#35557e"/>
+  <circle cx="200" cy="120" r="7" fill="#35557e"/>
+  <path d="M155 148 Q180 168 205 148" fill="none" stroke="#35557e" stroke-width="6" stroke-linecap="round"/>
+  <rect x="98" y="198" width="164" height="82" rx="12" fill="#eef4fb"/>
+  <text x="180" y="230" text-anchor="middle" font-size="20" fill="#35557e" font-family="Segoe UI, Arial, sans-serif">Add mascot</text>
+  <text x="180" y="254" text-anchor="middle" font-size="16" fill="#35557e" font-family="Segoe UI, Arial, sans-serif">images to</text>
+  <text x="180" y="276" text-anchor="middle" font-size="16" fill="#35557e" font-family="Segoe UI, Arial, sans-serif">static/mascots</text>
+</svg>

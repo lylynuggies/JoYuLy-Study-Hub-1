@@ -109,11 +109,11 @@ def render(request: Request, template_name: str, title: str, **context):
                 "You still have time if you execute the plan today.",
             ]
 
-    mascot_images = [
-        "/static/mascots/joyuly_hi.png",
-        "/static/mascots/joyuly_happy.png",
-        "/static/mascots/joyuly_sleep.png",
-    ]
+    mascot_dir = Path(__file__).resolve().parent.parent / "static" / "mascots"
+    preferred = ["joyuly_hi.png", "joyuly_happy.png", "joyuly_sleep.png"]
+    mascot_images = [f"/static/mascots/{name}" for name in preferred if (mascot_dir / name).exists()]
+    if not mascot_images:
+        mascot_images = ["/static/mascots/placeholder.svg"]
 
     payload = {
         "request": request,

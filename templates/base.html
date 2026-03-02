@@ -61,11 +61,15 @@
 
   const itemCount = Math.max(imgs.length, msgs.length);
   let idx = Math.floor(Date.now() / rotateMs) % itemCount;
+  const fallbackSrc = "/static/mascots/placeholder.svg";
 
   const setState = (i) => {
     imgEl.src = imgs[i % imgs.length];
     msgEl.textContent = msgs[i % msgs.length];
   };
+  imgEl.addEventListener("error", () => {
+    imgEl.src = fallbackSrc;
+  });
 
   const fadeTo = (nextIdx) => {
     imgEl.classList.add("is-fading");
