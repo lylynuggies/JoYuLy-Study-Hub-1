@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="c">
+  <h1>Study Plan</h1>
+  <form method="post" action="/study-plan/exams">
+    <input name="subject" placeholder="Subject" required>
+    <input name="title" placeholder="Exam title" required>
+    <input name="date" type="date" required>
+    <input name="topics" placeholder="Topics comma-separated">
+    <button>Add Exam</button>
+  </form>
+</div>
+
+<div class="c">
+  <h3>All Upcoming Exams</h3>
+  <table>
+    <tr><th>Subject</th><th>Title</th><th>Date</th><th>Days left</th><th>Topics</th><th>Actions</th></tr>
+    {% if exams_list %}
+      {% for e in exams_list %}
+      <tr>
+        <td>{{ e.subject }}</td>
+        <td>{{ e.title }}</td>
+        <td>{{ e.date }}</td>
+        <td>{{ e.days_left }}</td>
+        <td>{{ e.topics|join(', ') }}</td>
+        <td>
+          <details>
+            <summary>Edit</summary>
+            <form method="post" action="/study-plan/exams/{{ e.exam_id }}/edit">
+              <input name="subject" value="{{ e.subject }}" required>
+              <input name="title" value="{{ e.title }}" required>
+              <input name="date" type="date" value="{{ e.date }}" required>
+              <input name="topics" value="{{ e.topics|join(', ') }}">
+              <button>Save</button>
+            </form>
+            <form method="post" action="/study-plan/exams/{{ e.exam_id }}/delete">
+              <button class="btn-danger">Delete</button>
+            </form>
+          </details>
+        </td>
+      </tr>
+      {% endfor %}
+    {% else %}
+      <tr><td colspan="6">No upcoming exams.</td></tr>
+    {% endif %}
+  </table>
+</div>
+
+<div class="c">
+  <h3>Exams Within 14 Days</h3>
+  {% if plans %}
+    {% for p in plans %}
+    <div class="c">
+      <h3>{{ p.exam.subject }} - {{ p.exam.title }} ({{ p.exam.date }}, {{ p.exam.days_left }} days left)</h3>
+      <p>Estimated hours: <b>{{ p.hrs }}</b></p>
+      {% if p.hrs_to_70 is not none %}
+      <p>Regression estimate to reach 70%: <b>{{ p.hrs_to_70 }} hours</b></p>
+      <p>Tracked hours in this subject: <b>{{ p.tracked_hours }}</b></p>
+      {% else %}
+      <p>Regression estimate to reach 70%: <b>Not enough data yet</b></p>
+      {% endif %}
+      {% if p.pred is not none %}<p>Predicted score: <b>{{ p.pred }}%</b></p>{% endif %}
+      {% if p.on_track %}
+      <p><b style="color:#14803d;">Status: Good / On Track</b></p>
+      {% else %}
+      <p><b style="color:#b45309;">Status: Needs More Work</b></p>
+      {% endif %}
+      <div class="g">
+        <div>
+          <h4>Prioritize</h4>
+          <ul>
+            {% for x in p.pri %}
+            <li>{{ x.concept }} ({{ x.mastery_pct }}%)</li>
+            {% else %}
+            <li>No data yet.</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div>
+          <h4>Strong Concepts</h4>
+          <ul>
+            {% for x in p.strg %}
+            <li>{{ x.concept }} ({{ x.mastery_pct }}%)</li>
+            {% else %}
+            <li>No data yet.</li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+      <div style="margin-top:10px;">
+        <form method="post" action="/study-plan/generate" style="display:inline-block; margin-right:8px;">
+          <input type="hidden" name="exam_id" value="{{ p.exam.exam_id }}">
+          <input type="hidden" name="mode" value="tutorial">
+          <button type="submit">Tutorial / Exam Practice</button>
+        </form>
+        <form method="post" action="/study-plan/generate" style="display:inline-block;">
+          <input type="hidden" name="exam_id" value="{{ p.exam.exam_id }}">
+          <input type="hidden" name="mode" value="recap">
+          <button type="submit">On The Go Recap</button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <p>No exams in next 14 days.</p>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="c">
+  <h1><span class="icon-circle">D</span> Welcome, {{ welcome_name or user.name or "Student" }}</h1>
+  <p>Weekly total hours: {{ weekly_total }}</p>
+  <canvas id="c"></canvas>
+</div>
+
+<div class="g">
+  <div class="c">
+    <h3>Strongest</h3>
+    <table>
+      <tr><th>Subject</th><th>Mastery</th></tr>
+      {% for x in top %}
+      <tr><td>{{ x.subject }}</td><td>{{ x.mastery_pct }}%</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+  <div class="c">
+    <h3>Needs Focus</h3>
+    <table>
+      <tr><th>Subject</th><th>Mastery</th></tr>
+      {% for x in low %}
+      <tr><td>{{ x.subject }}</td><td>{{ x.mastery_pct }}%</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+</div>
+
+<div class="c">
+  <h3>Recent Reports</h3>
+  <table>
+    <tr><th>Subject</th><th>Paper</th><th>Progress</th><th>Score</th><th></th></tr>
+    {% for a in recent %}
+    <tr>
+      <td>{{ a.subject }}</td>
+      <td>{{ a.bank_title }}</td>
+      <td>{{ a.progress_pct }}%</td>
+      <td>{{ a.overall_pct }}%</td>
+      <td><a href="/reports/{{ a.attempt_id }}">Open</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<script id="chart-data" type="application/json">{{ chart | tojson }}</script>
+<script>
+const d = JSON.parse(document.getElementById('chart-data').textContent || '{"labels":[],"values":[]}');
+new Chart(document.getElementById('c'), {
+  type: 'bar',
+  data: { labels: d.labels, datasets: [{ data: d.values, label: 'Hours' }] }
+});
+</script>
+{% endblock %}

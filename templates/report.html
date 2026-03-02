@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="c">
+  <h1>Report: {{ report.bank_title }}</h1>
+  <p>Progress: {{ report.progress_pct }}% (attempted-only)</p>
+  <p>Score: {{ report.overall_pct }}% (attempted-only)</p>
+  {% if report.predicted_score is not none %}
+    <p>Predicted score: <b>{{ report.predicted_score }}%</b> | Actual: <b>{{ report.overall_pct }}%</b></p>
+  {% else %}
+    <p>Predicted score unavailable (need 3 weeks subject data).</p>
+  {% endif %}
+  {% if report_filename %}
+    <a class="btn" href="/reports/download/{{ attempt_id }}">Download Report File</a>
+  {% endif %}
+  <a class="btn" href="/reports/pdf/{{ attempt_id }}">Download PDF Report</a>
+</div>
+
+<div class="c">
+  <h3>Concept Summary</h3>
+  <div class="table-wrap">
+  <table class="report-table">
+    <tr><th>Concept</th><th>Attempted</th><th>Scored</th><th>Possible</th><th>Mastery</th></tr>
+    {% for x in concept_summary %}
+    <tr>
+      <td>{{ x.concept }}</td>
+      <td>{{ x.attempted }}</td>
+      <td>{{ x.scored|round(2) }}</td>
+      <td>{{ x.possible|round(2) }}</td>
+      <td>{{ x.mastery_pct }}%</td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+
+<div class="c">
+  <h3>Question-by-Question</h3>
+  <div class="table-wrap">
+  <table class="report-table">
+    <tr><th>QID</th><th>Concept</th><th>Correct</th><th>Student</th><th>Score</th><th>Feedback</th></tr>
+    {% for q in report.question_rows %}
+    <tr>
+      <td>{{ q.qid }}</td>
+      <td>{{ q.concept }}</td>
+      <td>{{ q.correct_answer }}</td>
+      <td>{{ q.student_answer or '-' }}</td>
+      <td>{{ q.mark_scored }}/{{ q.max_marks }}</td>
+      <td class="feedback-cell">{{ q.feedback }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+{% endblock %}

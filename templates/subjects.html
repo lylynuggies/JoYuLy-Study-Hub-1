@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="c">
+  <h1>Subjects</h1>
+  <p>Detailed subject-level performance from your reports.</p>
+</div>
+
+<div class="c">
+  <table>
+    <tr>
+      <th>Subject</th>
+      <th>Mastery</th>
+      <th>Avg Score</th>
+      <th>Total Hours</th>
+      <th>Attempted Qns</th>
+      <th>Concepts Tracked</th>
+      <th>Avg Pred Time (sec)</th>
+    </tr>
+    {% for s in subject_stats %}
+    <tr>
+      <td>{{ s.subject }}</td>
+      <td>{{ s.mastery_pct }}%</td>
+      <td>{{ s.avg_score }}%</td>
+      <td>{{ s.total_hours }}</td>
+      <td>{{ s.attempted }}</td>
+      <td>{{ s.concept_count }}</td>
+      <td>{{ s.avg_pred_time }}</td>
+    </tr>
+    {% else %}
+    <tr><td colspan="7">No subject stats yet. Start with Study Tracker.</td></tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}
+

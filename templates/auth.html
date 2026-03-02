@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="c" style="max-width: 560px; margin: 0 auto;">
+  {% if mode == "register" %}
+    <h2>Create Account</h2>
+    <input id="fb-first-name" placeholder="First Name">
+    <input id="fb-last-name" placeholder="Last Name">
+    <input id="fb-email" type="email" placeholder="Email">
+    <input id="fb-password" type="password" placeholder="Password">
+    <button type="button" id="fb-register-btn">Create Account</button>
+    <p style="margin-top: 10px;">
+      Already a user? <a href="/auth?mode=login">Login here.</a>
+    </p>
+  {% else %}
+    <h2>Login</h2>
+    <input id="fb-login-email" type="email" placeholder="Email">
+    <input id="fb-login-password" type="password" placeholder="Password">
+    <button type="button" id="fb-login-btn">Login</button>
+    <p style="margin-top: 10px;">
+      Not a user? <a href="/auth?mode=register">Sign up here.</a>
+    </p>
+  {% endif %}
+  <p id="fb-msg"></p>
+</div>
+
+{% if error %}
+<div class="c" style="max-width: 560px; margin: 12px auto 0;">{{ error }}</div>
+{% endif %}
+
+<script id="firebase-config" type="application/json">{{ firebase_config | tojson }}</script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+  const firebaseConfig = JSON.parse(document.getElementById("firebase-config").textContent || "{}");
+  const requiredFirebaseFields = ["apiKey", "authDomain", "projectId", "storageBucket", "messagingSenderId", "appId"];
+  const missingFirebaseFields = requiredFirebaseFields.filter((k) => !String(firebaseConfig[k] || "").trim());
+  if (missingFirebaseFields.length) {
+    msg.textContent = `Firebase web config missing: ${missingFirebaseFields.join(", ")}. Set env vars and restart server.`;
+    throw new Error("Missing Firebase web config");
+  }
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const msg = document.getElementById("fb-msg");
+  const PASSWORD_MIN_LEN = 8;
+
+  const toFriendlyError = (raw) => {
+    const text = String(raw || "").toLowerCase();
+    const codeMatch = String(raw || "").match(/auth\/[a-z0-9-]+/i);
+    const code = codeMatch ? codeMatch[0].toLowerCase() : "";
+    if (code.includes("invalid-email") || text.includes("invalid-email")) {
+      return "Email is invalid. Please input a valid email.";
+    }
+    if (code.includes("email-already-in-use") || text.includes("email-already-in-use")) {
+      return "This email is already registered. Please login or use another email.";
+    }
+    if (code.includes("weak-password") || text.includes("weak-password")) {
+      return "Password is too weak. Use at least 8 characters with one uppercase letter and one digit.";
+    }
+    if (code.includes("invalid-credential") || code.includes("wrong-password") || code.includes("user-not-found")) {
+      return "Invalid email or password. Please try again.";
+    }
+    if (text.includes("service account json not found")) {
+      return "Server Firebase setup is incomplete. Service account JSON file was not found.";
+    }
+    if (text.includes("default credentials were not found")) {
+      return "Server Firebase credentials are missing. Please configure Firebase Admin credentials.";
+    }
+    return "Authentication failed. Please try again.";
+  };
+
+  const isValidEmail = (email) => {
+    const v = String(email || "").trim().toLowerCase();
+    return v.includes("@") && v.endsWith(".com");
+  };
+
+  const isValidPassword = (password) => {
+    const p = String(password || "");
+    if (p.length < PASSWORD_MIN_LEN) return false;
+    if (!/[A-Z]/.test(p)) return false;
+    if (!/[0-9]/.test(p)) return false;
+    // Allow letters, digits, and only these special chars: . / _ - < >
+    return /^[A-Za-z0-9./_\-<>]+$/.test(p);
+  };
+
+  async function sendTokenToBackend(user, firstName = "", lastName = "") {
+    const idToken = await user.getIdToken();
+    const res = await fetch("/api/auth/firebase-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ idToken, firstName, lastName }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Firebase backend login failed");
+    window.location.href = "/dashboard";
+  }
+
+  const loginBtn = document.getElementById("fb-login-btn");
+  if (loginBtn) {
+    loginBtn.addEventListener("click", async () => {
+      msg.textContent = "";
+      try {
+        const email = document.getElementById("fb-login-email").value.trim();
+        const password = document.getElementById("fb-login-password").value;
+        if (!isValidEmail(email)) {
+          msg.textContent = "Email is invalid. Please input a valid email.";
+          return;
+        }
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        const fullName = (cred.user.displayName || "").trim();
+        const parts = fullName ? fullName.split(" ") : [];
+        await sendTokenToBackend(cred.user, parts[0] || "", parts.slice(1).join(" "));
+      } catch (e) {
+        msg.textContent = toFriendlyError(e?.message || e?.code || e);
+      }
+    });
+  }
+
+  const registerBtn = document.getElementById("fb-register-btn");
+  if (registerBtn) {
+    registerBtn.addEventListener("click", async () => {
+      msg.textContent = "";
+      try {
+        const firstName = document.getElementById("fb-first-name").value.trim();
+        const lastName = document.getElementById("fb-last-name").value.trim();
+        const email = document.getElementById("fb-email").value.trim();
+        const password = document.getElementById("fb-password").value;
+        if (!firstName) {
+          msg.textContent = "First name is required.";
+          return;
+        }
+        if (firstName.length > 20) {
+          msg.textContent = "First name must be 20 characters or fewer.";
+          return;
+        }
+        if (!isValidEmail(email)) {
+          msg.textContent = "Email is invalid. Please input a valid email.";
+          return;
+        }
+        if (!isValidPassword(password)) {
+          msg.textContent = "Password must be at least 8 characters, include one uppercase letter and one digit, and use only . / _ - < > as special characters.";
+          return;
+        }
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        const full = `${firstName} ${lastName}`.trim();
+        if (full) {
+          await updateProfile(cred.user, { displayName: full });
+        }
+        await sendTokenToBackend(cred.user, firstName, lastName);
+      } catch (e) {
+        msg.textContent = toFriendlyError(e?.message || e?.code || e);
+      }
+    });
+  }
+</script>
+{% endblock %}

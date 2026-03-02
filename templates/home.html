@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="c">
+  <h1>Track mastery and generate study plans</h1>
+  {% if user %}
+    <p>Welcome {{ user.name or "Student" }}. Use the modules below to manage study progress.</p>
+    <div class="feature-grid">
+      <a class="feature-card" href="/study-tracker">
+        <div class="feature-title"><span class="icon-circle">1</span> Study Tracker</div>
+        <p>Upload papers, attempt questions, and track mastery by concept.</p>
+      </a>
+      <a class="feature-card" href="/study-plan">
+        <div class="feature-title"><span class="icon-circle">2</span> Study Plan</div>
+        <p>Manage exam dates, get priorities, and estimate required hours.</p>
+      </a>
+      <a class="feature-card" href="/profile">
+        <div class="feature-title"><span class="icon-circle">3</span> Profile</div>
+        <p>Update your personal details and theme preferences.</p>
+      </a>
+    </div>
+  {% else %}
+    <a class="btn" href="/auth">Login / Register</a>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+jinja2
+python-multipart
+pandas
+openpyxl
+openai
+firebase-admin
+pypdf
+python-docx
+reportlab

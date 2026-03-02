@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root {
+      --bg: {{ palette.bg }};
+      --fg: {{ palette.fg }};
+      --card: {{ palette.card }};
+      --heading: {{ palette.heading }};
+      --muted: {{ palette.muted }};
+      --bg-gradient: {{ bg_preset.gradient | safe }};
+      --bg-image: {{ bg_preset.image | safe }};
+      --bg-overlay: {{ bg_preset.overlay | safe }};
+    }
+  </style>
+</head>
+<body data-theme="{{ current_theme }}">
+  <header class="topbar">
+    <a href="/dashboard" class="brand">{{ app_name }}</a>
+    <nav class="nav">
+      {% if current_user %}
+        <a href="/dashboard">Home</a>
+        <a href="/subjects">Subjects</a>
+        <a href="/study-tracker">Study Tracker</a>
+        <a href="/study-plan">Study Plan</a>
+        <a href="/profile">Profile</a>
+        <a href="/logout">Logout</a>
+      {% else %}
+        <a href="/auth">Login/Register</a>
+      {% endif %}
+    </nav>
+  </header>
+  <div class="app-shell{% if not current_user %} no-sidebar{% endif %}">
+    {% if current_user %}
+    <aside class="mascot-sidebar">
+      <div class="mascot-stage">
+        <img id="mascot-image" class="mascot-image" src="{{ mascot_images[0] if mascot_images else '' }}" alt="JoYuLy mascot">
+      </div>
+      <h3>JoYuLy</h3>
+      <p id="mascot-message">{{ mascot_messages[0] if mascot_messages else '' }}</p>
+    </aside>
+    {% endif %}
+    <main class="content-area">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+{% if current_user %}
+<script>
+(() => {
+  const imgs = {{ mascot_images | tojson }};
+  const msgs = {{ mascot_messages | tojson }};
+  const rotateMs = {{ mascot_rotate_ms | default(3600000) }};
+  const imgEl = document.getElementById("mascot-image");
+  const msgEl = document.getElementById("mascot-message");
+  if (!imgEl || !msgEl || !imgs.length || !msgs.length) return;
+
+  const itemCount = Math.max(imgs.length, msgs.length);
+  let idx = Math.floor(Date.now() / rotateMs) % itemCount;
+
+  const setState = (i) => {
+    imgEl.src = imgs[i % imgs.length];
+    msgEl.textContent = msgs[i % msgs.length];
+  };
+
+  const fadeTo = (nextIdx) => {
+    imgEl.classList.add("is-fading");
+    msgEl.classList.add("is-fading");
+    setTimeout(() => {
+      setState(nextIdx);
+      imgEl.classList.remove("is-fading");
+      msgEl.classList.remove("is-fading");
+    }, 320);
+  };
+
+  setState(idx);
+  setInterval(() => {
+    idx = (idx + 1) % itemCount;
+    fadeTo(idx);
+  }, rotateMs);
+})();
+</script>
+{% endif %}
+</body>
+</html>

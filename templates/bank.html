@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block content %}
+{% if not bank %}
+<div class="c">Paper not found.</div>
+{% else %}
+<div class="c">
+  <h1>{{ bank.title }}</h1>
+  <form method="post" action="/banks/{{ bank_id }}/edit">
+    <input name="title" value="{{ bank.title }}" required>
+    <input name="subject" value="{{ bank.subject }}" required>
+    <button>Save</button>
+  </form>
+  <form method="post" action="/banks/{{ bank_id }}/delete">
+    <button class="btn-danger">Delete Paper</button>
+  </form>
+</div>
+
+<div class="c">
+  <button type="button" id="start">Start</button>
+  <button type="button" id="stop">Stop</button>
+  <span id="t">00:00:00</span>
+</div>
+
+<form method="post" action="/banks/{{ bank_id }}/submit" enctype="multipart/form-data" id="f">
+  <input type="hidden" id="d" name="duration_seconds" value="0">
+  <div class="c">
+    <input type="file" name="workings" accept=".pdf,.docx,.txt">
+  </div>
+  {% for q in bank.questions %}
+  <div class="c">
+    <b>{{ q.qid }}</b> ({{ q.difficulty }})
+    <p>{{ q.question_text }}</p>
+    <p>Concept: {{ q.concept }} | Predicted: {{ q.predicted_seconds }} sec | Max: {{ q.max_marks }}</p>
+    <textarea name="answer_{{ q.qid }}" data-qid="{{ q.qid }}" rows="4"></textarea>
+  </div>
+  {% endfor %}
+  <div class="c"><button>Submit for AI Marking</button></div>
+</form>
+
+<script>
+const STORAGE_KEY = "bank_answers_{{ bank_id }}";
+let s = null, h = null;
+const d = document.getElementById('d');
+const t = document.getElementById('t');
+const F = x => String(x).padStart(2, '0');
+const fmt = x => `${F(Math.floor(x / 3600))}:${F(Math.floor(x / 60) % 60)}:${F(x % 60)}`;
+const cur = () => s ? Math.floor((Date.now() - s) / 1000) : parseInt(d.value || '0');
+document.getElementById('start').onclick = () => {
+  if (s) return;
+  s = Date.now();
+  h = setInterval(() => { let x = cur(); d.value = x; t.textContent = fmt(x); }, 500);
+};
+document.getElementById('stop').onclick = () => {
+  if (!s) return;
+  let x = cur(); d.value = x; t.textContent = fmt(x);
+  clearInterval(h); h = null; s = null;
+};
+
+const restore = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const saved = JSON.parse(raw);
+    if (saved.duration_seconds) {
+      d.value = parseInt(saved.duration_seconds, 10) || 0;
+      t.textContent = fmt(parseInt(d.value || "0", 10));
+    }
+    (saved.answers || []).forEach((a) => {
+      const el = document.querySelector(`textarea[data-qid="${a.qid}"]`);
+      if (el) el.value = a.value || "";
+    });
+  } catch (_) {}
+};
+
+const persist = () => {
+  const answers = Array.from(document.querySelectorAll("textarea[data-qid]")).map((el) => ({
+    qid: el.dataset.qid,
+    value: el.value || ""
+  }));
+  const payload = { duration_seconds: cur(), answers };
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(payload)); } catch (_) {}
+};
+
+let saveTimer = null;
+document.querySelectorAll("textarea[data-qid]").forEach((el) => {
+  el.addEventListener("input", () => {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(persist, 250);
+  });
+});
+setInterval(persist, 5000);
+restore();
+
+document.getElementById('f').onsubmit = () => { d.value = cur(); persist(); };
+</script>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="c">
+  <h1>Profile</h1>
+  <form method="post" action="/profile">
+    <input name="firstName" value="{{ user.firstName or '' }}" placeholder="First Name">
+    <input name="lastName" value="{{ user.lastName or '' }}" placeholder="Last Name">
+    <input name="email" value="{{ user.email or '' }}" placeholder="Email" disabled>
+    <input name="name" value="{{ user.name or '' }}" required>
+    <input name="school" value="{{ user.school or '' }}" placeholder="School">
+    <input name="grade" value="{{ user.grade or '' }}" placeholder="Grade">
+    <textarea name="bio">{{ user.bio or '' }}</textarea>
+    <select name="theme">
+      <option value="light" {% if user.theme == 'light' %}selected{% endif %}>Light</option>
+      <option value="dark" {% if user.theme == 'dark' %}selected{% endif %}>Dark</option>
+      <option value="ocean" {% if user.theme == 'ocean' %}selected{% endif %}>Ocean</option>
+    </select>
+    <button>Save</button>
+  </form>
+</div>
+{% endblock %}

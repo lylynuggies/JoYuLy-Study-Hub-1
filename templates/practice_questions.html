@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="c">
+  <h1>Practice Generator</h1>
+  <p><b>{{ exam.subject }}</b> - {{ exam.title }}</p>
+  <p>Mode: <b>{% if mode == "tutorial" %}Tutorial / Exam Practice{% else %}On The Go Recap{% endif %}</b></p>
+</div>
+
+<div class="c">
+  <h3>Generated Questions</h3>
+  {% if mode == "recap" %}
+    <form id="recap-quiz">
+      {% for q in questions %}
+      <div class="c">
+        <h4>{{ q.title }}</h4>
+        <p>{{ q.prompt }}</p>
+        {% for o in q.options %}
+        <label style="display:block; margin:4px 0;">
+          <input type="radio" name="{{ q.qid }}" value="{{ o.value }}" data-qid="{{ q.qid }}">
+          <b>{{ o.label }}.</b> {{ o.text }}
+        </label>
+        {% endfor %}
+      </div>
+      {% endfor %}
+      <button type="button" id="grade-recap">Check Answers</button>
+      <p id="recap-score"></p>
+    </form>
+  {% else %}
+    <form id="tutorial-practice">
+      {% for q in questions %}
+      <div class="c">
+        <h4>{{ q.title }}</h4>
+        <p>{{ q.prompt }}</p>
+        <p><i>{{ q.hint }}</i></p>
+        <textarea rows="8" data-qid="{{ q.qid }}" placeholder="Type your full workings and final answer here..."></textarea>
+      </div>
+      {% endfor %}
+    </form>
+  {% endif %}
+  <a class="btn" href="/study-plan">Back to Study Plan</a>
+</div>
+
+{% if mode == "recap" %}
+<script>
+(() => {
+  const STORAGE_KEY = "practice_{{ exam.exam_id }}_{{ mode }}";
+  const btn = document.getElementById("grade-recap");
+  const out = document.getElementById("recap-score");
+  if (!btn) return;
+  const answerKey = {
+    {% for q in questions %}
+    "{{ q.qid }}": "{{ q.answer }}",
+    {% endfor %}
+  };
+
+  const persist = () => {
+    const picks = {};
+    for (const qid of Object.keys(answerKey)) {
+      const checked = document.querySelector(`input[name="${qid}"]:checked`);
+      if (checked) picks[qid] = checked.value;
+    }
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ picks })); } catch (_) {}
+  };
+
+  const restore = () => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      const picks = saved.picks || {};
+      for (const [qid, val] of Object.entries(picks)) {
+        const el = document.querySelector(`input[name="${qid}"][value="${val}"]`);
+        if (el) el.checked = true;
+      }
+    } catch (_) {}
+  };
+
+  document.querySelectorAll("input[type='radio'][data-qid]").forEach((el) => {
+    el.addEventListener("change", persist);
+  });
+  restore();
+
+  btn.addEventListener("click", () => {
+    let total = 0, score = 0;
+    for (const qid of Object.keys(answerKey)) {
+      total += 1;
+      const picked = document.querySelector(`input[name="${qid}"]:checked`);
+      if (picked && picked.value === answerKey[qid]) score += 1;
+    }
+    out.textContent = `Score: ${score}/${total}`;
+    persist();
+  });
+})();
+</script>
+{% else %}
+<script>
+(() => {
+  const STORAGE_KEY = "practice_{{ exam.exam_id }}_{{ mode }}";
+  const areas = Array.from(document.querySelectorAll("textarea[data-qid]"));
+  if (!areas.length) return;
+
+  const persist = () => {
+    const answers = areas.map((el) => ({ qid: el.dataset.qid, value: el.value || "" }));
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ answers })); } catch (_) {}
+  };
+
+  const restore = () => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      (saved.answers || []).forEach((a) => {
+        const el = document.querySelector(`textarea[data-qid="${a.qid}"]`);
+        if (el) el.value = a.value || "";
+      });
+    } catch (_) {}
+  };
+
+  let timer = null;
+  areas.forEach((el) => {
+    el.addEventListener("input", () => {
+      clearTimeout(timer);
+      timer = setTimeout(persist, 250);
+    });
+  });
+  setInterval(persist, 5000);
+  restore();
+})();
+</script>
+{% endif %}
+{% endblock %}

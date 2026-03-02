@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual env
+.venv/
+venv/
+
+# Local runtime / generated data
+data/
+
+# Secrets / env
+.env
+.env.*
+*.pem
+*.key
+*firebase-adminsdk*.json
+service-account*.json
+
+# IDE / OS
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+

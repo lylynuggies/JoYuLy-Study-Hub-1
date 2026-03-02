@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="c">
+  <h1>Study Timer</h1>
+  <div class="g" style="align-items:center;">
+    <div>
+      <input id="timer-subject" placeholder="Subject for this session (e.g. Math)">
+      <div style="font-size:3rem; font-weight:700; color:#102a43; margin:8px 0 10px;" id="timer-display">00:00:00</div>
+      <button type="button" id="timer-start">Start</button>
+      <button type="button" id="timer-pause">Pause</button>
+      <button type="button" id="timer-reset" class="btn-danger">Reset</button>
+    </div>
+    <div>
+      <h3>Recent Session Durations</h3>
+      <table>
+        <tr><th></th><th>Subject</th><th>Duration</th></tr>
+        {% for s in sessions %}
+        <tr>
+          <td><span class="icon-circle">▶</span></td>
+          <td>{{ s.subject }}</td>
+          <td>{{ s.duration }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="3">No sessions yet.</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="c">
+  <h1>Study Tracker</h1>
+  <form method="post" action="/study-tracker/upload" enctype="multipart/form-data">
+    <input id="upload-subject" name="subject" placeholder="Subject" required>
+    <input type="file" name="file" accept=".pdf,.docx,.txt" required>
+    <button>Upload and Analyze</button>
+  </form>
+</div>
+
+<div class="c">
+  <table>
+    <tr><th>Subject</th><th>Title</th><th>Questions</th><th></th></tr>
+    {% for b in banks %}
+    <tr>
+      <td>{{ b.subject }}</td>
+      <td>{{ b.title }}</td>
+      <td>{{ b.questions }}</td>
+      <td><a href="/banks/{{ b.bank_id }}">Open</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<script>
+(() => {
+  const display = document.getElementById("timer-display");
+  const startBtn = document.getElementById("timer-start");
+  const pauseBtn = document.getElementById("timer-pause");
+  const resetBtn = document.getElementById("timer-reset");
+  const timerSubject = document.getElementById("timer-subject");
+  const uploadSubject = document.getElementById("upload-subject");
+
+  let startedAt = null;
+  let elapsed = 0;
+  let ticker = null;
+
+  const fmt = (sec) => {
+    const s = sec % 60;
+    const m = Math.floor(sec / 60) % 60;
+    const h = Math.floor(sec / 3600);
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${pad(h)}:${pad(m)}:${pad(s)}`;
+  };
+
+  const nowSec = () => startedAt ? elapsed + Math.floor((Date.now() - startedAt) / 1000) : elapsed;
+  const paint = () => { display.textContent = fmt(nowSec()); };
+
+  startBtn.addEventListener("click", () => {
+    if (startedAt) return;
+    startedAt = Date.now();
+    if (timerSubject.value.trim() && !uploadSubject.value.trim()) {
+      uploadSubject.value = timerSubject.value.trim();
+    }
+    ticker = setInterval(paint, 500);
+  });
+
+  pauseBtn.addEventListener("click", () => {
+    if (!startedAt) return;
+    elapsed = nowSec();
+    startedAt = null;
+    clearInterval(ticker);
+    ticker = null;
+    paint();
+  });
+
+  resetBtn.addEventListener("click", () => {
+    startedAt = null;
+    elapsed = 0;
+    clearInterval(ticker);
+    ticker = null;
+    paint();
+  });
+})();
+</script>
+{% endblock %}
