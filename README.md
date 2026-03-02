@@ -107,6 +107,8 @@ Why this setup?
 1. In `Build > Firestore Database`, create database.
 1. In `Build > Storage`, create bucket.
 1. In `Project settings > Service accounts`, generate a new private key JSON.
+   - If Firebase asks for language (Node.js/Java/Python/Go), choose **Python** for this project.
+   - The downloaded service-account JSON key is what you need; it works the same for this app.
 1. Save that JSON locally and set `FIREBASE_SERVICE_ACCOUNT_JSON` to that file path.
 1. In `Project settings > General > Your apps > Web app`, copy `apiKey` into `FIREBASE_WEB_API_KEY`.
 
