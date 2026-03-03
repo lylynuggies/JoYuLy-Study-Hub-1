@@ -114,6 +114,10 @@ Why this setup?
 1. In `Project settings > General > Your apps > Web app`, copy `apiKey` into `FIREBASE_WEB_API_KEY`.
 
 ## How to Use
+Demo account with existing data (for quick testing):
+- Email: `nuraly@gmail.com`
+- Password: `alyaly`
+
 1. Login/Register from auth page.
 1. Study Tracker:
    - upload `.pdf/.docx/.txt`
