@@ -70,15 +70,6 @@ Why this setup?
 
 ## Setup (Step-by-Step)
 1. Open terminal in project root.
-1. If PowerShell blocks script execution, fix execution policy first:
-   ```powershell
-   Get-ExecutionPolicy
-   ```
-   - If result is `Restricted`, run:
-   ```powershell
-   Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
-   ```
-   - Type `Y` and press Enter to confirm.
 1. Create virtual environment:
    ```powershell
    py -m venv .venv
@@ -150,6 +141,17 @@ For judging/testing:
   - check service account permissions for Firestore and Storage
 - OpenAI-related errors:
   - confirm `OPENAI_API_KEY` is set and valid
+- PowerShell execution policy error when activating venv:
+  - open **PowerShell as Administrator**
+  - run:
+    ```powershell
+    Get-ExecutionPolicy
+    ```
+  - if result is `Restricted`, run:
+    ```powershell
+    Set-ExecutionPolicy RemoteSigned
+    ```
+  - type `Y` and press Enter
 
 ## Security Notes
 - Never commit credentials (`*.json` service account files or API keys).
