@@ -70,6 +70,15 @@ Why this setup?
 
 ## Setup (Step-by-Step)
 1. Open terminal in project root.
+1. If PowerShell blocks script execution, fix execution policy first:
+   ```powershell
+   Get-ExecutionPolicy
+   ```
+   - If result is `Restricted`, run:
+   ```powershell
+   Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+   ```
+   - Type `Y` and press Enter to confirm.
 1. Create virtual environment:
    ```powershell
    py -m venv .venv
@@ -100,6 +109,7 @@ Why this setup?
 - Forgetting to enable Email/Password in Firebase Auth
 - Missing `FIREBASE_WEB_API_KEY`
 - Not activating virtual environment before running install/app
+- PowerShell execution policy is `Restricted` (activate command fails)
 
 ## Firebase Setup (First Time Only)
 1. Go to Firebase Console and create/select your project.
